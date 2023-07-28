@@ -1,0 +1,19 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: httpbin
+  namespace: default
+spec:
+  protocol: http
+  envoyExtensions:
+  - name: builtin/ext-authz
+    required: true
+    arguments:
+      proxyType: connect-proxy
+      config:
+        grpcService:
+          target:
+            service:
+              name: apigee-remote-service-envoy
+              namespace: default
+              partition: default
