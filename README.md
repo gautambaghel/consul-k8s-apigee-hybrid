@@ -10,39 +10,39 @@ Following instructions are taken from the [quickstart repository here](https://g
 
 * Select the GCP project to install hybrid:
 
-        ```
-        export PROJECT_ID=xxx
-        gcloud auth login
-        gcloud auth application-default login 
-        ```
+```sh
+export PROJECT_ID=xxx
+gcloud auth login
+gcloud auth application-default login 
+```
 
 ### (Optional) Override Default Config
 
 * The following environment variables are set by default, export them to override the default values if needed.
 
-        ```
-        # GCP region and zone for the runtime
-        export REGION='us-west1'
-        export ZONE='us-west1-a,us-west1-b,us-west1-c'
+```sh
+# GCP region and zone for the runtime
+export REGION='us-west1'
+export ZONE='us-west1-a,us-west1-b,us-west1-c'
 
-        # Networking
-        export NETWORK='apigee-hybrid'
-        export SUBNET='apigee-us-west1'
+# Networking
+export NETWORK='apigee-hybrid'
+export SUBNET='apigee-us-west1'
 
-        # Runtime GKE cluster
-        export GKE_CLUSTER_NAME='apigee-hybrid'
-        export GKE_CLUSTER_MACHINE_TYPE='e2-standard-4'
+# Runtime GKE cluster
+export GKE_CLUSTER_NAME='apigee-hybrid'
+export GKE_CLUSTER_MACHINE_TYPE='e2-standard-4'
 
-        # Apigee Env Config
-        export ENV_NAME='env'
-        export ENV_GROUP_NAME='envgroup'
+# Apigee Env Config
+export ENV_NAME='env'
+export ENV_GROUP_NAME='envgroup'
 
-        # By default a subdomain will be created for every env group e.g. env.1-2-3-4.nip.io (where 1.2.3.4 is the IP of the istio ingress)
-        export DNS_NAME="my-ingress-ip.nip.io"
+# By default a subdomain will be created for every env group e.g. env.1-2-3-4.nip.io (where 1.2.3.4 is the IP of the istio ingress)
+export DNS_NAME="my-ingress-ip.nip.io"
 
-        # Choose between 'external' and 'internal' ingress
-        export INGRESS_TYPE="external"
-        ```
+# Choose between 'external' and 'internal' ingress
+export INGRESS_TYPE="external"
+```
 
 ### Initialize the Apigee hybrid runtime on a GKE cluster
 
@@ -50,9 +50,9 @@ After the configuration is done run the following command to initialize you
 Apigee hybrid organization and runtime. This typically takes between 15 and
 20min.
 
-        ```
-        infra/initialize-runtime-gke.sh
-        ```
+```sh
+infra/initialize-runtime-gke.sh
+```
 
 * Apigee hybrid config files are generated at [infra/hybrid-files/overrides.yaml](infra/hybrid-files/overrides.yaml)
 
@@ -60,25 +60,25 @@ Apigee hybrid organization and runtime. This typically takes between 15 and
 
 * This example needs Consul version > 1.16 to work
 
-        ```
-        export CONSUL_LICENSE="paste-your-consul-license-here"
-        kubectl create secret generic consul-enterprise-license --from-literal=key=$CONSUL_LICENSE -n consul
-        helm install consul hashicorp/consul --create-namespace --namespace consul --values consul/values.yaml
-        ```
+```sh
+export CONSUL_LICENSE="paste-your-consul-license-here"
+kubectl create secret generic consul-enterprise-license --from-literal=key=$CONSUL_LICENSE -n consul
+helm install consul hashicorp/consul --create-namespace --namespace consul --values consul/values.yaml
+```
 
 * (Optional) Alternatively use [consul-k8s](https://github.com/hashicorp/consul-k8s) cli service to install Consul
 
-        ```
-        brew install consul-k8s # change based on the OS
-        kubectl create ns consul
-        consul-k8s install -namespace consul -f consul/values.yaml
-        ```
+```sh
+brew install consul-k8s # change based on the OS
+kubectl create ns consul
+consul-k8s install -namespace consul -f consul/values.yaml
+```
 
 * Ensure Consul services are healthy
 
-        ```
-        kubectl get pods -n consul
-        ```
+```sh
+kubectl get pods -n consul
+```
 
 ### Configure Apigee Envoy adapter and deploy sample services
 
@@ -86,141 +86,141 @@ Following instructions are taken from [this guide](https://cloud.google.com/apig
 
 * Download the [apigee-remote-serice-cli](https://github.com/apigee/apigee-remote-service-cli)
 
-        ```
-        curl -L https://github.com/apigee/apigee-remote-service-cli/releases/download/v2.1.1/apigee-remote-service-cli_2.1.1_macOS_64-bit.tar.gz > apigee-remote-service-cli.tar.gz
-        tar -xf apigee-remote-service-cli.tar.gz
-        ./apigee-remote-service-cli -h
-        ```
+```sh
+curl -L https://github.com/apigee/apigee-remote-service-cli/releases/download/v2.1.1/apigee-remote-service-cli_2.1.1_macOS_64-bit.tar.gz > apigee-remote-service-cli.tar.gz
+tar -xf apigee-remote-service-cli.tar.gz
+./apigee-remote-service-cli -h
+```
 
 * Configure upstream Apigee authorization service
 
-        ```
-        gcloud auth login
-        gcloud auth application-default login
-        export TOKEN=$(gcloud auth print-access-token);echo $TOKEN
+```sh
+gcloud auth login
+gcloud auth application-default login
+export TOKEN=$(gcloud auth print-access-token);echo $TOKEN
 
-        # k8s namespace where the services will be created
-        export NAMESPACE="default"
-        export ORG="paste_your_GCP_org_id_here"
-        export ENV="env"
-        export RUNTIME="https://paste_the_generated.nip.io_here"
+# k8s namespace where the services will be created
+export NAMESPACE="default"
+export ORG="paste_your_GCP_org_id_here"
+export ENV="env"
+export RUNTIME="https://paste_the_generated.nip.io_here"
 
-        # Provision the services in Apigee
-        ./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure > apigee/config.yaml
-        ```
+# Provision the services in Apigee
+./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure > apigee/config.yaml
+```
 
 * Apply the generated config for Apigee and sample services
 
-        ```
-        kubectl apply -f apigee/config.yaml
-        kubectl apply -f apigee/apigee-envoy-adapter.yaml
-        kubectl apply -f app/*
-        ```
+```sh
+kubectl apply -f apigee/config.yaml
+kubectl apply -f apigee/apigee-envoy-adapter.yaml
+kubectl apply -f app/*
+```
 
 * Ping the httpbin service from curl service
 
-        ```
-        kubectl exec -it deployment/curl -- /bin/sh
-        curl -i curl -i httpbin.default.svc.cluster.local/headers
-        ```
+```sh
+kubectl exec -it deployment/curl -- /bin/sh
+curl -i curl -i httpbin.default.svc.cluster.local/headers
+```
 
 * The response should be HTTP/1.1 200 OK
 
-        ```
-        HTTP/1.1 200 OK
-        server: envoy
-        date: Thu, 99 XX 20XX XX:XX:XX GMT
-        content-type: application/json
-        content-length: 2225
-        access-control-allow-origin: *
-        access-control-allow-credentials: true
-        x-envoy-upstream-service-time: 28
+```sh
+HTTP/1.1 200 OK
+server: envoy
+date: Thu, 99 XX 20XX XX:XX:XX GMT
+content-type: application/json
+content-length: 2225
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 28
 
-        {
-            "headers": {
-                "Accept": "*/*", 
-                "Host": "httpbin.default.svc.cluster.local", 
-                "User-Agent": "curl/8.2.0", 
-                "X-Envoy-Auth-Failure-Mode-Allowed": "true", 
-                "X-Envoy-Expected-Rq-Timeout-Ms": "15000", 
-                "X-Forwarded-Client-Cert": "--cert-redacted--"
-            }
-        }
-        ```
+{
+    "headers": {
+        "Accept": "*/*", 
+        "Host": "httpbin.default.svc.cluster.local", 
+        "User-Agent": "curl/8.2.0", 
+        "X-Envoy-Auth-Failure-Mode-Allowed": "true", 
+        "X-Envoy-Expected-Rq-Timeout-Ms": "15000", 
+        "X-Forwarded-Client-Cert": "--cert-redacted--"
+    }
+}
+```
 
 ### Apply the ext_authz filter
 
 * The ext_authz filter will be applied on the httpbin
 
-        ```
-        kubectl apply -f consul/ext_authz.yaml
-        ```
+```sh
+kubectl apply -f consul/ext_authz.yaml
+```
 
 * (Optional) To debug port forward and visit [localhost:19000](localhost:19000) > click config_dump > search for 'ext_authz'
 
-        ```
-        kubectl port-forward deployment/httpbin 19000
-        ```
+```sh
+kubectl port-forward deployment/httpbin 19000
+```
 
 * Ping the httpbin service from curl service again
 
-        ```
-        kubectl exec -it deployment/curl -- /bin/sh
-        curl -i curl -i httpbin.default.svc.cluster.local/headers
-        ```
+```sh
+kubectl exec -it deployment/curl -- /bin/sh
+curl -i curl -i httpbin.default.svc.cluster.local/headers
+```
 
 * The response should be HTTP/1.1 403 Forbidden
 
-        ```
-        HTTP/1.1 403 Forbidden
-        date: Thu, 99 XX 20XX XX:XX:XX GMT
-        server: envoy
-        content-length: 0
-        x-envoy-upstream-service-time: 3
-        ```
+```sh
+HTTP/1.1 403 Forbidden
+date: Thu, 99 XX 20XX XX:XX:XX GMT
+server: envoy
+content-length: 0
+x-envoy-upstream-service-time: 3
+```
 
 * After using the API key generated from Apigee [(follow guide here)](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/operation#how-to-obtain-an-api-key) and pinging again the response should have Apigee headers
 
-        ```
-        curl -i httpbin.default.svc.cluster.local/headers -H "x-api-key: developer_client_key_goes_here"
-        ```
+```sh
+curl -i httpbin.default.svc.cluster.local/headers -H "x-api-key: developer_client_key_goes_here"
+```
 
-        ```
-        HTTP/1.1 200 OK
-        server: envoy
-        date: Thu, 99 XX 20XX XX:XX:XX GMT
-        content-type: application/json
-        content-length: 2727
-        access-control-allow-origin: *
-        access-control-allow-credentials: true
-        x-envoy-upstream-service-time: 22
-        {
-            "headers": {
-                "Accept": "*/*", 
-                "Host": "httpbin.default.svc.cluster.local", 
-                "User-Agent": "curl/8.2.0", 
-                "X-Api-Key": "developer_client_key_goes_here", 
-                "X-Apigee-Accesstoken": "", 
-                "X-Apigee-Api": "httpbin.default.svc.cluster.local", 
-                "X-Apigee-Apiproducts": "httpbin-product", 
-                "X-Apigee-Application": "httpbin-app", 
-                "X-Apigee-Authorized": "true", 
-                "X-Apigee-Clientid": "developer_client_key_goes_here", 
-                "X-Apigee-Developeremail": "user@hashicorp.com", 
-                "X-Apigee-Environment": "env", 
-                "X-Apigee-Organization": "GCP_ORG_ID", 
-                "X-Apigee-Scope": "", 
-                "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
-                "X-Forwarded-Client-Cert": "--cert-redacted--"
-            }
-        }
-        ```
+```sh
+HTTP/1.1 200 OK
+server: envoy
+date: Thu, 99 XX 20XX XX:XX:XX GMT
+content-type: application/json
+content-length: 2727
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 22
+{
+    "headers": {
+        "Accept": "*/*", 
+        "Host": "httpbin.default.svc.cluster.local", 
+        "User-Agent": "curl/8.2.0", 
+        "X-Api-Key": "developer_client_key_goes_here", 
+        "X-Apigee-Accesstoken": "", 
+        "X-Apigee-Api": "httpbin.default.svc.cluster.local", 
+        "X-Apigee-Apiproducts": "httpbin-product", 
+        "X-Apigee-Application": "httpbin-app", 
+        "X-Apigee-Authorized": "true", 
+        "X-Apigee-Clientid": "developer_client_key_goes_here", 
+        "X-Apigee-Developeremail": "user@hashicorp.com", 
+        "X-Apigee-Environment": "env", 
+        "X-Apigee-Organization": "GCP_ORG_ID", 
+        "X-Apigee-Scope": "", 
+        "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
+        "X-Forwarded-Client-Cert": "--cert-redacted--"
+    }
+}
+```
 
 ### Clean up
 
 This tool includes a script to automatically clean up the Apigee hybrid
 runtime resources (without deleting the Apigee Organization).
 
-        ```
-        infra/destroy-runtime-gke.sh
-        ```
+```sh
+infra/destroy-runtime-gke.sh
+```
