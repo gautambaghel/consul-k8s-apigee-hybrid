@@ -199,7 +199,7 @@ x-envoy-upstream-service-time: 3
 
 * After using the API key generated from Apigee [(follow guide here)](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/operation#how-to-obtain-an-api-key) and pinging again the response should have Apigee headers
 
-> **_NOTE:_** There might be a delay after creating the API key, ~2 mins. 
+> **_NOTE:_** There might be a delay after creating the API key of ~2 mins. 
 
 ```sh
 curl -i httpbin.default.svc.cluster.local/headers -H "x-api-key: developer_client_key_goes_here"

@@ -66,4 +66,4 @@ spec:
         - name: policy-secret
           secret:
             defaultMode: 420
-            secretName: hc-73259e37dc554e4a9bac892ae3b-env-policy-secret
+            secretName: ${ORG}-${ENV}-policy-secret

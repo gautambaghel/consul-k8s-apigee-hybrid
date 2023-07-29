@@ -1,2 +1,7 @@
+infra/hybrid-files
+infra/tools
+infra/.env*
+infra/example-proxy/*.zip
+
 *apigee-remote-service-cli
 config.yaml
