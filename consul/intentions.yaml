@@ -1,0 +1,11 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: curl-to-httpbin
+  namespace: default
+spec:
+  destination:
+    name: httpbin
+  sources:
+  - name: curl
+    action: allow

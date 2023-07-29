@@ -1,0 +1,50 @@
+global:
+  name: consul
+  image: "hashicorp/consul-enterprise:1.16-ent" # Optional
+  imageK8S: "hashicorp/consul-k8s-control-plane:1.2.0" # Optional
+  datacenter: default
+  adminPartitions: # Optional
+    enabled: true
+    name: "default"
+  acls:
+    manageSystemACLs: true
+  enableConsulNamespaces: true # Optional
+  enterpriseLicense: # Optional
+    secretName: consul-enterprise-license
+    secretKey: key
+    enableLicenseAutoload: true
+  tls:
+    enabled: true
+    serverAdditionalDNSSANs: ['*.gcp.sbx.hashicorpdemo.com']
+    enableAutoEncrypt: true
+
+server:
+ replicas: 1
+ bootstrapExpect: 1
+ exposeService:
+    enabled: true
+    type: LoadBalancer
+ extraConfig: |
+    {
+      "log_level": "TRACE"
+    }
+
+connectInject:
+  enabled: true
+  default: true
+  transparentProxy:
+    defaultEnabled: true
+  consulNamespaces:
+    mirroringK8S: true
+  logLevel: trace
+  k8sAllowNamespaces: ['default']
+  k8sDenyNamespaces: ['']
+
+controller:
+  enabled: true
+
+ui:
+  enabled: true
+  service:
+    enabled: true
+    type: LoadBalancer

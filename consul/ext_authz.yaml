@@ -13,7 +13,4 @@ spec:
       config:
         grpcService:
           target:
-            service:
-              name: apigee-remote-service-envoy
-              namespace: default
-              partition: default
+            uri: 127.0.0.1:5000

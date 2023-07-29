@@ -8,12 +8,13 @@ Following instructions are taken from the [quickstart repository here](https://g
 
 ### Select a GCP project
 
-* Select the GCP project to install hybrid:
+* Select the GCP project to install Apigee hybrid
 
 ```sh
 export PROJECT_ID=xxx
+gcloud config set project $PROJECT_ID
 gcloud auth login
-gcloud auth application-default login 
+gcloud auth application-default login
 ```
 
 ### (Optional) Override Default Config
@@ -47,8 +48,8 @@ export INGRESS_TYPE="external"
 ### Initialize the Apigee hybrid runtime on a GKE cluster
 
 After the configuration is done run the following command to initialize you
-Apigee hybrid organization and runtime. This typically takes between 15 and
-20min.
+Apigee hybrid organization and runtime. ***This typically takes between 15 and
+20min.***
 
 ```sh
 infra/initialize-runtime-gke.sh
@@ -62,8 +63,9 @@ infra/initialize-runtime-gke.sh
 
 ```sh
 export CONSUL_LICENSE="paste-your-consul-license-here"
+kubectl create ns consul
 kubectl create secret generic consul-enterprise-license --from-literal=key=$CONSUL_LICENSE -n consul
-helm install consul hashicorp/consul --create-namespace --namespace consul --values consul/values.yaml
+helm install consul hashicorp/consul --namespace consul --values consul/values.yaml
 ```
 
 * (Optional) Alternatively use [consul-k8s](https://github.com/hashicorp/consul-k8s) cli service to install Consul
@@ -89,39 +91,55 @@ Following instructions are taken from [this guide](https://cloud.google.com/apig
 ```sh
 curl -L https://github.com/apigee/apigee-remote-service-cli/releases/download/v2.1.1/apigee-remote-service-cli_2.1.1_macOS_64-bit.tar.gz > apigee-remote-service-cli.tar.gz
 tar -xf apigee-remote-service-cli.tar.gz
+rm apigee-remote-service-cli.tar.gz
 ./apigee-remote-service-cli -h
 ```
 
 * Configure upstream Apigee authorization service
 
 ```sh
+export PROJECT_ID=xxx
+gcloud config set project $PROJECT_ID
 gcloud auth login
 gcloud auth application-default login
 export TOKEN=$(gcloud auth print-access-token);echo $TOKEN
 
 # k8s namespace where the services will be created
-export NAMESPACE="default"
-export ORG="paste_your_GCP_org_id_here"
+export NAMESPACE="apigee"
+export ORG="paste_your_GCP_org_id"
 export ENV="env"
-export RUNTIME="https://paste_the_generated.nip.io_here"
+export RUNTIME="https://envgroup.paste_the_generated.nip.io"
 
 # Provision the services in Apigee
-./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure > apigee/config.yaml
+./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure --verbose > config.yaml
 ```
 
 * Apply the generated config for Apigee and sample services
 
 ```sh
-kubectl apply -f apigee/config.yaml
-kubectl apply -f apigee/apigee-envoy-adapter.yaml
-kubectl apply -f app/*
+# generate the configmap, secret and service account in apigee namespace
+kubectl apply -f config.yaml
+
+# generate the configmap, secret and service account in default namespace
+yq eval 'select(.metadata.namespace == "apigee") | .metadata.namespace = "default"' -i "config.yaml"
+kubectl apply -f config.yaml
+
+# configure httpbin service
+export SECRET_NAME="${ORG}-${ENV}-policy-secret"
+yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i app/httpbin.yaml
+
+# Create consul intention between curl and httpbin
+kubectl apply -f consul/intentions.yaml
+
+# Deploy the 2 services
+kubectl apply -f app/
 ```
 
 * Ping the httpbin service from curl service
 
 ```sh
 kubectl exec -it deployment/curl -- /bin/sh
-curl -i curl -i httpbin.default.svc.cluster.local/headers
+curl -i httpbin.default.svc.cluster.local/headers
 ```
 
 * The response should be HTTP/1.1 200 OK
@@ -180,6 +198,8 @@ x-envoy-upstream-service-time: 3
 ```
 
 * After using the API key generated from Apigee [(follow guide here)](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/operation#how-to-obtain-an-api-key) and pinging again the response should have Apigee headers
+
+> **_NOTE:_** There might be a delay after creating the API key, ~2 mins. 
 
 ```sh
 curl -i httpbin.default.svc.cluster.local/headers -H "x-api-key: developer_client_key_goes_here"
