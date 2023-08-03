@@ -709,8 +709,8 @@ install_runtime() {
     pushd "$HYBRID_HOME" || return # because apigeectl uses pwd-relative paths
     mkdir -p "$HYBRID_HOME"/generated
 
-    # export -f apigeectl_init
-    # timeout 1200 bash -c 'until apigeectl_init; do sleep 30; done'
+    export -f apigeectl_init
+    timeout 1200 bash -c 'until apigeectl_init; do sleep 30; done'
 
     echo -n "⏳ Waiting for Apigeectl init "
     timeout 600 bash -c 'until kubectl wait --for=condition=ready --timeout 60s pod -l app=apigee-controller -n apigee-system; do sleep 10; done'

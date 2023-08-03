@@ -184,7 +184,7 @@ kubectl port-forward deployment/httpbin 19000
 
 ```sh
 kubectl exec -it deployment/curl -- /bin/sh
-curl -i curl -i httpbin.default.svc.cluster.local/headers
+curl -i httpbin.default.svc.cluster.local/headers
 ```
 
 * The response should be HTTP/1.1 403 Forbidden
