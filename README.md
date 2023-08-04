@@ -124,11 +124,23 @@ kubectl apply -f config.yaml
 yq eval 'select(.metadata.namespace == "apigee") | .metadata.namespace = "default"' -i "config.yaml"
 kubectl apply -f config.yaml
 
-# configure httpbin service
+# configure apigee-envoy-adapter deployment yaml
 export SECRET_NAME="${ORG}-${ENV}-policy-secret"
-yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i app/httpbin.yaml
+yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i apigee/apigee-envoy-adapter.yaml
+yq eval '.spec.template.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter.yaml
+yq eval '.spec.template.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter.yaml
 
-# Create consul intention between curl and httpbin
+# configure apigee-envoy-adapter service yaml
+yq eval '.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter-svc.yaml
+yq eval '.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter-svc.yaml
+
+# Deploy the proxy and it's service in K8s
+kubectl apply -f apigee/
+
+# Configure the apigee-envoy-adapter service as grpc in Consul using Service Default
+kubectl apply -f consul/proxy_service_default.yaml
+
+# Create consul intentions as such curl -> httpbin & httpbin -> apigee-envoy-adapter
 kubectl apply -f consul/intentions.yaml
 
 # Deploy the 2 services

@@ -25,45 +25,24 @@ spec:
           name: httpbin
           ports:
             - containerPort: 80
-        - name: apigee-remote-service-envoy
-          image: "google/apigee-envoy-adapter:v2.1.1"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 5000
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 5001
-            failureThreshold: 1
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 5001
-            failureThreshold: 30
-            periodSeconds: 10
-          args:
-            - --log-level=debug
-            - --config=/config/config.yaml
-          resources:
-            limits:
-              cpu: 100m
-              memory: 100Mi
-            requests:
-              cpu: 10m
-              memory: 100Mi
-          volumeMounts:
-            - mountPath: /config
-              name: apigee-remote-service-envoy
-              readOnly: true
-            - mountPath: /policy-secret
-              name: policy-secret
-              readOnly: true
-      volumes:
-        - name: apigee-remote-service-envoy
-          configMap:
-            name: apigee-remote-service-envoy
-        - name: policy-secret
-          secret:
-            defaultMode: 420
-            secretName: ${ORG}-${ENV}-policy-secret
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: httpbin
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  namespace: default
+  labels:
+    app: httpbin
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    app: httpbin

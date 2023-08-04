@@ -9,3 +9,15 @@ spec:
   sources:
   - name: curl
     action: allow
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: httpbin-to-proxy
+  namespace: default
+spec:
+  destination:
+    name: apigee-remote-service-envoy
+  sources:
+  - name: httpbin
+    action: allow
