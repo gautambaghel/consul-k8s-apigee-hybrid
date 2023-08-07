@@ -37,12 +37,6 @@ export GKE_CLUSTER_MACHINE_TYPE='e2-standard-4'
 # Apigee Env Config
 export ENV_NAME='env'
 export ENV_GROUP_NAME='envgroup'
-
-# By default a subdomain will be created for every env group e.g. env.1-2-3-4.nip.io (where 1.2.3.4 is the IP of the istio ingress)
-export DNS_NAME="my-ingress-ip.nip.io"
-
-# Choose between 'external' and 'internal' ingress
-export INGRESS_TYPE="external"
 ```
 
 ### Initialize the Apigee hybrid runtime on a GKE cluster
