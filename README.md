@@ -122,11 +122,11 @@ kubectl apply -f config.yaml
 export SECRET_NAME="${ORG}-${ENV}-policy-secret"
 yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i app/httpbin.yaml
 
-# Create consul intention between curl and httpbin
-kubectl apply -f consul/intentions.yaml
-
 # Deploy the 2 services
 kubectl apply -f app/
+
+# Create consul intention between curl and httpbin
+kubectl apply -f consul/intentions.yaml
 ```
 
 * Ping the httpbin service from curl service
