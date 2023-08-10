@@ -15,7 +15,6 @@ global:
     enableLicenseAutoload: true
   tls:
     enabled: true
-    serverAdditionalDNSSANs: ['*.gcp.sbx.hashicorpdemo.com']
     enableAutoEncrypt: true
 
 server:

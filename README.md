@@ -17,7 +17,7 @@ gcloud auth login
 gcloud auth application-default login
 ```
 
-### (Optional) Override Default Config
+### (Optional step) Override Default Config
 
 * The following environment variables are set by default, export them to override the default values if needed.
 
@@ -62,11 +62,12 @@ kubectl create secret generic consul-enterprise-license --from-literal=key=$CONS
 helm install consul hashicorp/consul --namespace consul --values consul/values.yaml
 ```
 
-* (Optional) Alternatively use [consul-k8s](https://github.com/hashicorp/consul-k8s) cli service to install Consul
+* (Optional step) Alternatively use [consul-k8s](https://github.com/hashicorp/consul-k8s) cli service to install Consul
 
 ```sh
 brew install consul-k8s # change based on the OS
 kubectl create ns consul
+kubectl create secret generic consul-enterprise-license --from-literal=key=$CONSUL_LICENSE -n consul
 consul-k8s install -namespace consul -f consul/values.yaml
 ```
 
@@ -80,55 +81,16 @@ kubectl get pods -n consul
 
 Following instructions are taken from [this guide](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/example-hybrid) please refer there for issues and further assistance.
 
-* Download the [apigee-remote-serice-cli](https://github.com/apigee/apigee-remote-service-cli)
-
 ```sh
-curl -L https://github.com/apigee/apigee-remote-service-cli/releases/download/v2.1.1/apigee-remote-service-cli_2.1.1_macOS_64-bit.tar.gz > apigee-remote-service-cli.tar.gz
-tar -xf apigee-remote-service-cli.tar.gz
-rm apigee-remote-service-cli.tar.gz
-./apigee-remote-service-cli -h
+# Configure the Apigee Remote service with auto injector
+infra/apigee-remote.sh
 ```
 
-* Configure upstream Apigee authorization service
+* Create consul intention between curl and httpbin
 
 ```sh
-export PROJECT_ID=xxx
-gcloud config set project $PROJECT_ID
-gcloud auth login
-gcloud auth application-default login
-export TOKEN=$(gcloud auth print-access-token);echo $TOKEN
-
-# k8s namespace where the services will be created
-export NAMESPACE="apigee"
-export ORG="paste_your_GCP_org_id"
-export ENV="env"
-export RUNTIME="https://envgroup.paste_the_generated.nip.io"
-
-# Provision the services in Apigee
-./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure --verbose > config.yaml
-```
-
-* Apply the generated config for Apigee and sample services
-
-```sh
-# generate the configmap, secret and service account in apigee namespace
-kubectl apply -f config.yaml
-
-# generate the configmap, secret and service account in default namespace
-yq eval 'select(.metadata.namespace == "apigee") | .metadata.namespace = "default"' -i "config.yaml"
-kubectl apply -f config.yaml
-
-# configure httpbin service
-export SECRET_NAME="${ORG}-${ENV}-policy-secret"
-yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i app/httpbin.yaml
-
-# Deploy the 2 services
-kubectl apply -f app/
-
-# Create consul intention between curl and httpbin
 kubectl apply -f consul/intentions.yaml
 ```
-
 * Ping the httpbin service from curl service
 
 ```sh
