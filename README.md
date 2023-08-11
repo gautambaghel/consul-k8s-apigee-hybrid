@@ -81,8 +81,9 @@ kubectl get pods -n consul
 
 Following instructions are taken from [this guide](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/example-hybrid) please refer there for issues and further assistance.
 
+* Configure the Apigee Remote service with auto injector
+
 ```sh
-# Configure the Apigee Remote service with auto injector
 infra/apigee-remote.sh
 ```
 
