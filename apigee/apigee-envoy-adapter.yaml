@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: apigee-remote-service-envoy
-  namespace: default
+  namespace: apigee
 spec:
   replicas: 1
   selector:

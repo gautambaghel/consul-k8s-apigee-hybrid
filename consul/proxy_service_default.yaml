@@ -2,6 +2,6 @@ apiVersion: consul.hashicorp.com/v1alpha1
 kind: ServiceDefaults
 metadata:
   name: apigee-remote-service-envoy
-  namespace: default
+  namespace: apigee
 spec:
   protocol: grpc

@@ -37,12 +37,6 @@ export GKE_CLUSTER_MACHINE_TYPE='e2-standard-4'
 # Apigee Env Config
 export ENV_NAME='env'
 export ENV_GROUP_NAME='envgroup'
-
-# By default a subdomain will be created for every env group e.g. env.1-2-3-4.nip.io (where 1.2.3.4 is the IP of the istio ingress)
-export DNS_NAME="my-ingress-ip.nip.io"
-
-# Choose between 'external' and 'internal' ingress
-export INGRESS_TYPE="external"
 ```
 
 ### Initialize the Apigee hybrid runtime on a GKE cluster
@@ -73,6 +67,7 @@ helm install consul hashicorp/consul --namespace consul --values consul/values.y
 ```sh
 brew install consul-k8s # change based on the OS
 kubectl create ns consul
+kubectl create secret generic consul-enterprise-license --from-literal=key=$CONSUL_LICENSE -n consul
 consul-k8s install -namespace consul -f consul/values.yaml
 ```
 
@@ -86,57 +81,15 @@ kubectl get pods -n consul
 
 Following instructions are taken from [this guide](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/example-hybrid) please refer there for issues and further assistance.
 
-* Download the [apigee-remote-serice-cli](https://github.com/apigee/apigee-remote-service-cli)
+* Configure the Apigee Remote service
 
 ```sh
-curl -L https://github.com/apigee/apigee-remote-service-cli/releases/download/v2.1.1/apigee-remote-service-cli_2.1.1_macOS_64-bit.tar.gz > apigee-remote-service-cli.tar.gz
-tar -xf apigee-remote-service-cli.tar.gz
-rm apigee-remote-service-cli.tar.gz
-./apigee-remote-service-cli -h
+infra/apigee-remote.sh
 ```
 
-* Configure upstream Apigee authorization service
+* Configure Consul
 
 ```sh
-export PROJECT_ID=xxx
-gcloud config set project $PROJECT_ID
-gcloud auth login
-gcloud auth application-default login
-export TOKEN=$(gcloud auth print-access-token);echo $TOKEN
-
-# k8s namespace where the services will be created
-export NAMESPACE="apigee"
-export ORG="paste_your_GCP_org_id"
-export ENV="env"
-export RUNTIME="https://envgroup.paste_the_generated.nip.io"
-
-# Provision the services in Apigee
-./apigee-remote-service-cli provision --organization $ORG --environment $ENV --runtime $RUNTIME --namespace $NAMESPACE --token $TOKEN --insecure --verbose > config.yaml
-```
-
-* Apply the generated config for Apigee and sample services
-
-```sh
-# generate the configmap, secret and service account in apigee namespace
-kubectl apply -f config.yaml
-
-# generate the configmap, secret and service account in default namespace
-yq eval 'select(.metadata.namespace == "apigee") | .metadata.namespace = "default"' -i "config.yaml"
-kubectl apply -f config.yaml
-
-# configure apigee-envoy-adapter deployment yaml
-export SECRET_NAME="${ORG}-${ENV}-policy-secret"
-yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i apigee/apigee-envoy-adapter.yaml
-yq eval '.spec.template.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter.yaml
-yq eval '.spec.template.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter.yaml
-
-# configure apigee-envoy-adapter service yaml
-yq eval '.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter-svc.yaml
-yq eval '.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter-svc.yaml
-
-# Deploy the proxy and it's service in K8s
-kubectl apply -f apigee/
-
 # Configure the apigee-envoy-adapter service as grpc in Consul using Service Default
 kubectl apply -f consul/proxy_service_default.yaml
 

@@ -15,3 +15,4 @@ spec:
           target:
             service:
               name: apigee-remote-service-envoy
+              namespace: apigee

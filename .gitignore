@@ -3,5 +3,7 @@ infra/tools
 infra/.env*
 infra/example-proxy/*.zip
 
-*apigee-remote-service-cli
-config.yaml
+apigee/apigee-remote-service-cli
+apigee/config.yaml
+apigee/LICENSE
+apigee/README.md

@@ -37,7 +37,7 @@ connectInject:
   consulNamespaces:
     mirroringK8S: true
   logLevel: trace
-  k8sAllowNamespaces: ['default']
+  k8sAllowNamespaces: ['default', 'apigee']
   k8sDenyNamespaces: ['']
 
 controller:

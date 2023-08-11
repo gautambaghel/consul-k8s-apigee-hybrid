@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: example-backend
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: httpbin
-  namespace: example-backend
+  namespace: default
 spec:
   selector:
     matchLabels:
@@ -45,7 +40,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: httpbin
-  namespace: example-backend
+  namespace: default
 spec:
   selector:
     app: httpbin

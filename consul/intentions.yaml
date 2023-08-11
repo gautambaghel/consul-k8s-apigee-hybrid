@@ -18,6 +18,7 @@ metadata:
 spec:
   destination:
     name: apigee-remote-service-envoy
+    namespace: apigee
   sources:
   - name: httpbin
     action: allow
