@@ -87,41 +87,20 @@ Following instructions are taken from [this guide](https://cloud.google.com/apig
 infra/apigee-remote.sh
 ```
 
-* Create consul intention between curl and httpbin
+* Create consul intention between counting and dashboard services
 
 ```sh
 kubectl apply -f consul/intentions.yaml
 ```
-* Ping the httpbin service from curl service
+* Expose the dashboard service and test the connection; visit [localhost:9002](localhost:9002)
 
 ```sh
-kubectl exec -it deployment/curl -- /bin/sh
-curl -i httpbin.default.svc.cluster.local/headers
+kubectl port-forward svc/dashboard 9002:9002
 ```
 
-* The response should be HTTP/1.1 200 OK
+* The services should be connected
 
-```sh
-HTTP/1.1 200 OK
-server: envoy
-date: Thu, 99 XX 20XX XX:XX:XX GMT
-content-type: application/json
-content-length: 2225
-access-control-allow-origin: *
-access-control-allow-credentials: true
-x-envoy-upstream-service-time: 28
-
-{
-    "headers": {
-        "Accept": "*/*", 
-        "Host": "httpbin.default.svc.cluster.local", 
-        "User-Agent": "curl/8.2.0", 
-        "X-Envoy-Auth-Failure-Mode-Allowed": "true", 
-        "X-Envoy-Expected-Rq-Timeout-Ms": "15000", 
-        "X-Forwarded-Client-Cert": "--cert-redacted--"
-    }
-}
-```
+![connected](images/connected.png)
 
 ### Apply the ext_authz filter
 
@@ -137,60 +116,28 @@ kubectl apply -f consul/ext_authz.yaml
 kubectl port-forward deployment/httpbin 19000
 ```
 
-* Ping the httpbin service from curl service again
+* Expose the dashboard service and test the connection again; visit [localhost:9002](localhost:9002)
 
 ```sh
-kubectl exec -it deployment/curl -- /bin/sh
-curl -i httpbin.default.svc.cluster.local/headers
+kubectl port-forward svc/dashboard 9002:9002
 ```
 
-* The response should be HTTP/1.1 403 Forbidden
+* The services should be disconnected
 
-```sh
-HTTP/1.1 403 Forbidden
-date: Thu, 99 XX 20XX XX:XX:XX GMT
-server: envoy
-content-length: 0
-x-envoy-upstream-service-time: 3
-```
+![disconnected](images/disconnected.png)
 
 * After using the API key generated from Apigee [(follow guide here)](https://cloud.google.com/apigee/docs/api-platform/envoy-adapter/v2.0.x/operation#how-to-obtain-an-api-key) and pinging again the response should have Apigee headers
 
 > **_NOTE:_** There might be a delay after creating the API key of ~2 mins. 
 
 ```sh
-curl -i httpbin.default.svc.cluster.local/headers -H "x-api-key: developer_client_key_goes_here"
+export KEY="PASTE_YOUR_KEY_HERE"
+sed 's@APIGEE_API_KEY@'"$KEY"'@' app/dashboard.yaml
+kubectl apply -f app/dashboard.yaml
 ```
 
-```sh
-HTTP/1.1 200 OK
-server: envoy
-date: Thu, 99 XX 20XX XX:XX:XX GMT
-content-type: application/json
-content-length: 2727
-access-control-allow-origin: *
-access-control-allow-credentials: true
-x-envoy-upstream-service-time: 22
-{
-    "headers": {
-        "Accept": "*/*", 
-        "Host": "httpbin.default.svc.cluster.local", 
-        "User-Agent": "curl/8.2.0", 
-        "X-Api-Key": "developer_client_key_goes_here", 
-        "X-Apigee-Accesstoken": "", 
-        "X-Apigee-Api": "httpbin.default.svc.cluster.local", 
-        "X-Apigee-Apiproducts": "httpbin-product", 
-        "X-Apigee-Application": "httpbin-app", 
-        "X-Apigee-Authorized": "true", 
-        "X-Apigee-Clientid": "developer_client_key_goes_here", 
-        "X-Apigee-Developeremail": "user@hashicorp.com", 
-        "X-Apigee-Environment": "env", 
-        "X-Apigee-Organization": "GCP_ORG_ID", 
-        "X-Apigee-Scope": "", 
-        "X-Envoy-Expected-Rq-Timeout-Ms": "15000",
-        "X-Forwarded-Client-Cert": "--cert-redacted--"
-    }
-}
+![connected](images/connected_again.png)
+
 ```
 
 ### Clean up

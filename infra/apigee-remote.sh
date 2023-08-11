@@ -62,9 +62,10 @@ yq eval '.metadata.name = "apigee-remote-service-envoy"' -i apigee/config.yaml
 yq eval 'select(.metadata.namespace == env(APIGEE_NAMESPACE)) | .metadata.namespace = env(APP_NAMESPACE)' -i "apigee/config.yaml"
 kubectl apply -f apigee/config.yaml
 
-# Deploy the curl service
-echo "🔧 Deploying the curl service"
-kubectl apply -f app/curl.yaml
+# Deploy the dashboard and counting services
+echo "🔧 Deploying the dashboard and counting services"
+kubectl apply -f app/counting.yaml
+kubectl apply -f app/dashboard.yaml
 
 # Create Webhook injector for Apigee remote service
 echo "🔧 Label $APP_NAMESPACE namespace to inject Apigee proxy sidecar"
@@ -77,4 +78,4 @@ kubectl apply -f apigee/
 # Restart httpbin pod for injector to attach itself
 echo "Sleep for 30 seconds for injector pod to come up"
 sleep 30
-kubectl delete pod -l app=httpbin
+kubectl delete pod -l app=counting

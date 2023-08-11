@@ -1,11 +1,10 @@
 apiVersion: consul.hashicorp.com/v1alpha1
 kind: ServiceIntentions
 metadata:
-  name: curl-to-httpbin
-  namespace: default
+  name: dashboard-to-counting
 spec:
   destination:
-    name: httpbin
+    name: counting
   sources:
-  - name: curl
-    action: allow
+    - name: dashboard
+      action: allow
