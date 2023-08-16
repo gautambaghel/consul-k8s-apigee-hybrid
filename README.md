@@ -138,10 +138,9 @@ kubectl apply -f app/dashboard.yaml
 
 ![connected](images/connected_again.png)
 
-```
-
 ### Clean up
 
+```
 This tool includes a script to automatically clean up the Apigee hybrid
 runtime resources (without deleting the Apigee Organization).
 
