@@ -53,14 +53,14 @@ apigee/apigee-remote-service-cli version
 apigee/apigee-remote-service-cli provision --organization $ORG --environment $ENV_NAME --runtime $RUNTIME --namespace $APIGEE_NAMESPACE --token $TOKEN --verbose > apigee/config.yaml
 
 # configure apigee-envoy-adapter deployment yaml
-export SECRET_NAME="${ORG}-${ENV}-policy-secret"
+export SECRET_NAME="${ORG}-${ENV_NAME}-policy-secret"
 yq eval '.spec.template.spec.volumes[1].secret.secretName = env(SECRET_NAME)' -i apigee/apigee-envoy-adapter.yaml
 yq eval '.spec.template.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter.yaml
-yq eval '.spec.template.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter.yaml
+yq eval '.spec.template.metadata.labels.env = env(ENV_NAME)' -i apigee/apigee-envoy-adapter.yaml
 
 # configure apigee-envoy-adapter service yaml
 yq eval '.metadata.labels.org = env(ORG)' -i apigee/apigee-envoy-adapter-svc.yaml
-yq eval '.metadata.labels.env = env(ENV)' -i apigee/apigee-envoy-adapter-svc.yaml
+yq eval '.metadata.labels.env = env(ENV_NAME)' -i apigee/apigee-envoy-adapter-svc.yaml
 
 echo "🔧 Applying deployment, configmap and secrets for the Apigee remote service"
 # Apply the deployment, svc, configmap, secret and service account in apigee namespace
